@@ -1,4 +1,4 @@
-# Trading-Instruments
+# Trading Instruments For (Crypto) Trading Research
 The project aims to provide a research with a variety of instruments to perform a trading research primarily within a crypto space.
 Currently, the project in its beginning stage.
 
