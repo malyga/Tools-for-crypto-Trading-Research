@@ -6,4 +6,4 @@ The project is in its very beginning stage.
 
 ## Download and Process Trading Data from Binance
 Currently, I am developing functions to dowload and process trading Open, Close, High, Low, Volume, Trades data from Binance.<br>
-Two scripts to dowload and process data will be introduced.
+Two scripts to dowload and process data are being developed.
