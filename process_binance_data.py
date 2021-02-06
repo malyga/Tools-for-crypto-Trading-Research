@@ -77,7 +77,7 @@ def create_OCHLVT_tables(start_date, end_date, step, tickers_to_process, directo
 
     '''
     The function provides a relatively fast way to generate
-    Open, Close, High, Low, Volume, Trades (OCHLVT) tables for the data
+    Open, High, Low, Close Volume, Trades (OHLCVT) tables for the data
     downloaded from Binance using binance package.
     Each generated table contains a single type of the OCHLVT data
     for selected symbols. The tables have dimension a number of periods
