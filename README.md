@@ -4,5 +4,5 @@ Although there are many similar resources on the web that help to address tradin
 Thus, I would like to propose several functions, and, at the end, a package that provides a range of robust and useful tools for trading and investment research.
 The project is in its very beginning stage. 
 
-## Download and Process Trading Data from Binance
-Currently, only a script to create Open, High, Low, Close, Volume, Trades tables for several symbols per table was uploaded. The data was downloaded from `Binance` via `Binance API` (more detailed explanantion will be added).<br>
+## Process Trading Data from Binance
+Currently, only a relatively fast script to create Open, High, Low, Close (OHLC), Volume, Trades tables for several symbols per table was uploaded. The data was downloaded from `Binance` via `Binance API`. The script at a large extent uses `NumPy` computational power and useful processing frequent data (ticks, minutes)(more detailed explanantion will be added).<br>
