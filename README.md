@@ -5,5 +5,4 @@ Thus, I would like to propose several functions, and, at the end, a package that
 The project is in its very beginning stage. 
 
 ## Download and Process Trading Data from Binance
-Currently, I am developing functions to dowload and process trading Open, Close, High, Low, Volume, Trades data from Binance.<br>
-Two scripts to dowload and process data are being developed.
+Currently, only a script to create Open, High, Low, Close, Volume, Trades tables for several symbols was uploaded. The data downloaded from `Binance` via `Binance API`.<br>
