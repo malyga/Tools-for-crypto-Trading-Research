@@ -1,123 +1,81 @@
 import datetime
 import pandas as pd
+import os.path
 import glob
 import numpy as np
 import time
 
-def generateDatesArray(start_date, end_date, step = "60"):
+def Average(lst):
 
-    '''
+    return sum(lst) / len(lst)
+def generate_dates_vector(start_date, end_date, step = "60"):
 
-    Function generates a pandas array with datetime data of a fixed frequency.
+    # close = pd.read_csv('2019-12-20-close.csv')
+    # close_btc.loc[close_btc['Date'] == '2019-11-19 18:45:00']
 
-    Input:
-
-        start_date: string. Should be written as '%Y-%m-%d %H:%M:%S'
-
-        end_date: string. Should be written as '%Y-%m-%d %H:%M:%S'
-
-        step: string. Default value: "60". Frequency, in seconds.
-
-    Output:
-
-        datesArray: Pandas Array.
-
-    '''
 
     step = datetime.timedelta(seconds = step)
     startDate = start_date
     endDate = end_date
 
-    listOfDates = []
+    vectorDates = []
 
     while startDate < endDate:
-        listOfDates.append(startDate.strftime('%Y-%m-%d %H:%M:%S'))
+        vectorDates.append(startDate.strftime('%Y-%m-%d %H:%M:%S'))
         startDate += step
-    datesArray = pd.DataFrame(np.asanyarray(listOfDates, dtype='datetime64'))
-    datesArray.rename(columns = {0: "Date"}, inplace = True)
+    vectorDates = pd.DataFrame(np.asanyarray(vectorDates, dtype='datetime64'))
+    vectorDates.rename(columns = {0: "Date"}, inplace = True)
 
-    return(datesArray)
-
-def find_relevant_file_names(tickers_to_process, directory_to_raw_data):
-
-    '''
-
-    Function assumes that in a directory, a user stores .csv files.
-    Each file stores trading data for a single symbol downloaded from
-    Binance. The function selects from all files stored in the directory only
-    those ones, that a user would like to create a table with OCHL, volume, Trades
-    data and returns a list with filenames.
-
-    Input:
-
-        tickers_to_process: list. Should contain symbols of interest. For example
-            ["BTCUSDT", "DOTUSDT"]
-
-        directory_to_raw_data: string. A directory, in which a user stores .csv
-            files to process.
-    Output:
-
-        selected_file_names, list.
-
-    '''
-
+    return(vectorDates)
+def find_relevant_file_names(directory_to_raw_data, tickers_to_process = None, base_ticker = "USDT"):
+    
     path = directory_to_raw_data + "*" + ".csv"
     all_file_names = glob.glob(path)
     all_tickers = [file_name.split('-')[0].split('/')[-1] for file_name in all_file_names]
-    tickers_to_process = tickers_to_process
 
+    usdt_tickers = []
+    btc_tickers = []
+
+    for i in range(0, len(all_tickers)):
+        try:
+            if(isinstance(all_tickers[i].index("USDT"), int) == True):
+                usdt_tickers.append(all_tickers[i])
+
+        except:
+            if(isinstance(all_tickers[i].index("BTC"), int) == True):
+                btc_tickers.append(all_tickers[i])
+
+    if (tickers_to_process == None) & (base_ticker == "USDT"):
+        tickers_to_process = usdt_tickers
+        
+    elif (tickers_to_process == None) & (base_ticker == "BTC"):
+        tickers_to_process = btc_tickers
+    
     selected_file_names =[directory_to_raw_data
                              + ticker
                              + '-1m-data.csv'
                              for ticker in tickers_to_process]
 
-    return(selected_file_names)
+    return(tickers_to_process, selected_file_names)
 
-def create_OCHLVT_tables(start_date, end_date, step, tickers_to_process, directory_to_raw_data, export_directory):
 
-    '''
-    The function provides a relatively fast way to generate
-    Open, High, Low, Close Volume, Trades (OHLCVT) tables for the data
-    downloaded from Binance using binance package.
-    Each generated table contains a single type of the OCHLVT data
-    for selected symbols. The tables have dimension a number of periods
-    times a number of tickers.
-    Function returns 6 .csv files.
-
-    Input:
-        start_date: string. Should be written as '%Y-%m-%d %H:%M:%S'
-
-        end_date: string. Should be written as '%Y-%m-%d %H:%M:%S'
-
-        step: string. Default value: "60". Frequency, in seconds.
-
-        tickers_to_process: list. Should contain symbols of interest.
-         For example ["BTCUSDT", "DOTUSDT"]
-
-        directory_to_raw_data: string. A directory, in which
-         a user stores .csv files to process.
-
-        export_directory: string. A directory, in which
-         a user stores .csv output files to process.
-
-    Output:
-        Six OCHLVT .csv files that are stored in export_directory.
-
-    '''
+    
+def create_OCHLVT_tables(start_date, end_date, step, directory_to_raw_data, export_directory, tickers_to_process = None, base_ticker = "USDT"):
 
     directory_to_raw_data = directory_to_raw_data
-    columnIndexes = [1, 2, 3, 4, 5, 8]
-    columnNames = ['open', 'high', 'low', 'close', 'volume', 'trades']
-    vectorDates = generateDatesArray(start_date = start_date,
-                                     end_date = end_date, step = step)
 
-    relevant_file_names = find_relevant_file_names(tickers_to_process = tickers_to_process,
-                                                   directory_to_raw_data = directory_to_raw_data)
-    tickers = tickers_to_process
+    columnIndexes = [1, 2, 3, 4, 5, 8]
+
+    columnNames = ['open', 'high', 'low', 'close', 'volume', 'trades']
+
+    vectorDates = generate_dates_vector(start_date = start_date,
+                                        end_date = end_date, step = step)
+                                        
+    tickers, relevant_file_names  = find_relevant_file_names(directory_to_raw_data, tickers_to_process, base_ticker)
     fileNames = relevant_file_names
     iterations = len(columnIndexes)
     timeElapsed = []
-    coinFlag = tickers[0][3:7]
+    coinFlag = base_ticker
     indexForColumnNames = 0
 
     for columnIndex in columnIndexes:
@@ -163,8 +121,7 @@ def create_OCHLVT_tables(start_date, end_date, step, tickers_to_process, directo
         timeElapsedPoint = endTimer - startTimer
         iterations += -1
         timeElapsed.append(timeElapsedPoint)
-        expetedTimeLeftMinutes = round(np.mean(np.array(timeElapsed))\
-                                  * iterations / 60, 2)
+        expetedTimeLeftMinutes = round(Average(timeElapsed) * iterations / 60, 2)
         finalTableDataFrame = None
         indexForColumnNames += 1
 
@@ -174,16 +131,21 @@ def create_OCHLVT_tables(start_date, end_date, step, tickers_to_process, directo
 
         print('The name of the generated file is ' + fileNameToWrite + '.')
         print()
+
     return()
 
-start_date_input = datetime.datetime(2018, 1, 1, 0, 00, 00)
-end_date_input = datetime.datetime(2021, 2, 5, 0, 00, 00)
-tickers_usdt = ['ADAUSDT', 'ATOMUSDT']
-directory_to_raw_data = '/Users/username/Desktop/'
-directory_export = '/Users/username/Desktop/'
+start_date_input = datetime.datetime(2018, 1, 1, 0, 00, 00) # '%Y-%m-%d %H:%M:%S'
+end_date_input = datetime.datetime(2021, 2, 15, 12, 00, 00) # '%Y-%m-%d %H:%M:%S'
+directory_to_raw_data = ''
+directory_export = ''
+path = directory_to_raw_data + "*" + ".csv"
+all_file_names = glob.glob(path)
 
-create_OCHLVT_tables(start_date = start_date_input, end_date = end_date_input,
+
+create_OCHLVT_tables(start_date = start_date_input, 
+                     end_date = end_date_input, 
                      step = 60,
-                     tickers_to_process = tickers_usdt,
                      directory_to_raw_data = directory_to_raw_data,
-                     export_directory = directory_export)
+                     export_directory = directory_export,
+                     tickers_to_process = None,
+                     base_ticker = "USDT")
