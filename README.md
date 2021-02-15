@@ -1,5 +1,5 @@
 
-# Process Trading Data from Binance
+# Download and Process Trading Data from Binance
 
 
 The script `download_binance_data.py` is a working version that allows to download the trading data from `Binance` via `Binance API`.
