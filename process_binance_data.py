@@ -8,11 +8,8 @@ import time
 def Average(lst):
 
     return sum(lst) / len(lst)
+
 def generate_dates_vector(start_date, end_date, step = "60"):
-
-    # close = pd.read_csv('2019-12-20-close.csv')
-    # close_btc.loc[close_btc['Date'] == '2019-11-19 18:45:00']
-
 
     step = datetime.timedelta(seconds = step)
     startDate = start_date
@@ -25,9 +22,11 @@ def generate_dates_vector(start_date, end_date, step = "60"):
         startDate += step
     vectorDates = pd.DataFrame(np.asanyarray(vectorDates, dtype='datetime64'))
     vectorDates.rename(columns = {0: "Date"}, inplace = True)
-
     return(vectorDates)
-def find_relevant_file_names(directory_to_raw_data, tickers_to_process = None, base_ticker = "USDT"):
+
+def find_symbol_filenames(directory_to_raw_data, 
+                          tickers_to_process = None, 
+                          base_ticker = "USDT"):
     
     path = directory_to_raw_data + "*" + ".csv"
     all_file_names = glob.glob(path)
@@ -55,12 +54,15 @@ def find_relevant_file_names(directory_to_raw_data, tickers_to_process = None, b
                              + ticker
                              + '-1m-data.csv'
                              for ticker in tickers_to_process]
-
     return(tickers_to_process, selected_file_names)
 
 
     
-def create_OCHLVT_tables(start_date, end_date, step, directory_to_raw_data, export_directory, tickers_to_process = None, base_ticker = "USDT"):
+def create_OCHLVT_tables(start_date, end_date, 
+                         step, directory_to_raw_data, 
+                         export_directory, 
+                         tickers_to_process = None, 
+                         base_ticker = "USDT"):
 
     directory_to_raw_data = directory_to_raw_data
 
@@ -71,7 +73,9 @@ def create_OCHLVT_tables(start_date, end_date, step, directory_to_raw_data, expo
     vectorDates = generate_dates_vector(start_date = start_date,
                                         end_date = end_date, step = step)
                                         
-    tickers, relevant_file_names  = find_relevant_file_names(directory_to_raw_data, tickers_to_process, base_ticker)
+    tickers, relevant_file_names  = find_symbol_filenames(directory_to_raw_data, 
+                                                          tickers_to_process, 
+                                                          base_ticker)
     fileNames = relevant_file_names
     iterations = len(columnIndexes)
     timeElapsed = []
