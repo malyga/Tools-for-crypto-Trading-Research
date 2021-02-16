@@ -9,14 +9,14 @@ import tqdm
 import numpy as np
 
 path = os.getcwd()
-os.chdir('') # set a directory where you would like to store the data
+os.chdir('/Users/username/Desktop') # set a directory where you would like to store the data
 
-binance_api_key = '[]'
-binance_api_secret = '[]'
-client = Client(binance_api_key, binance_api_secret)
+binance_api_key = '[]' # set your api key
+binance_api_secret = '[]' # set your api secret key
 binsizes = {"1m": 1, "5m": 5, "1h": 60, "1d": 1440}
 batch_size = 750
-binance_client = Client(api_key=binance_api_key, api_secret=binance_api_secret)
+binance_client = Client(api_key=binance_api_key, 
+                        api_secret=binance_api_secret) # get access to Client
 
 def minutes_of_new_data(symbol, kline_size, data, source):
     if len(data) > 0:
@@ -62,15 +62,12 @@ def downloadAllBinance(symbol, kline_size, save=False):
     return data_df
 
 
-#tickers = pd.read_csv("", header = None) # if you have a .csv file that stores tickers, link it
-#tickers = tickers.iloc[:,1].tolist()
-tickers = ["BTCUSDT"] # List the tickers of interest.
-
-timeElapsed = []
-tickers_missed = []
-numOfTickers = len(tickers)
-iterations = numOfTickers
-freq = "1m"
+tickers = ["BTCUSDT"] # symbols to download
+timeElapsed = [] # stores time elampsed for each item
+tickers_missed = [] # stores the tickers that were not dowloaded for troubleshoting
+numOfTickers = len(tickers) # total number of tickers to download
+iterations = numOfTickers # iterations left
+freq = "1m" # data frequency
 
 for symbol in tickers:
 
