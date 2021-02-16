@@ -1,7 +1,9 @@
 
-# Download and Process Trading Data from Binance
+# Tools to Download Data from Exchanges & Platforms
 
-## Information about the scripts:
+## Download and Process Trading Data from Binance
+
+### Information about the scripts:
 
 * The `download_binance_data.py` script is a working version that allows to download the trading data (OHLC, Volume, Trades, etc.) from `Binance` via `Binance API`.
 The script downloads the data per a symbol and stores it within a directory as a .csv file.
