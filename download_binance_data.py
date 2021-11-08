@@ -3,7 +3,7 @@ import math
 import os.path
 import time
 from binance.client import Client
-from datetime import timedelta, datetime
+import datetime import
 from dateutil import parser
 import tqdm
 import numpy as np
@@ -38,7 +38,7 @@ def downloadAllBinance(symbol, kline_size, save=False):
         symbol, kline_size, data_df, source="binance")
     delta_min = (newest_point - oldest_point).total_seconds() / 60
     available_data = math.ceil(delta_min / binsizes[kline_size])
-    if oldest_point == datetime.strptime('1 Jan 2017', '%d %b %Y'):
+    if oldest_point == datetime.datetime.strptime('1 Jan 2017', '%d %b %Y'):
         print('Downloading all available %s data for %s.' %
               (kline_size, symbol))
     else:
