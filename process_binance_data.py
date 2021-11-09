@@ -11,7 +11,7 @@ def Average(lst):
 
 def generate_dates_vector(start_date, end_date, step = "60"):
 
-    step = datetime.timedelta(seconds = step)
+    step = datetime.datetime.timedelta(seconds = step)
     startDate = start_date
     endDate = end_date
 
