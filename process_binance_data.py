@@ -1,4 +1,5 @@
 import datetime
+from detatime import timedelta
 import pandas as pd
 import os.path
 import glob
@@ -11,7 +12,7 @@ def Average(lst):
 
 def generate_dates_vector(start_date, end_date, step = "60"):
 
-    step = datetime.datetime.timedelta(seconds = step)
+    step = timedelta(seconds = step)
     startDate = start_date
     endDate = end_date
 
