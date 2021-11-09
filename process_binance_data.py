@@ -40,6 +40,19 @@ def find_symbol_filenames(directory_to_raw_data,
                           tickers_to_process = None, 
                           base_ticker = "USDT"):
     
+    """
+    The function returns filenames that are stored within directory_to_raw_data 
+    and all tickers crypto pairs) related to the base_ticker. For example, if base_ticker = "USDT" 
+    and within directory_to_raw_data there is the only price (.csv) file associated to base_ticker, then
+    the returned data will be ("BTCUSDT-1d-data.csv", "BTCUSDT").
+    
+    The file names within directory_to_raw_data should be name, for instance, as "BTCUSDT-1m-data.csv"
+    
+    Arguments: 
+    Returns:
+    
+    """
+    
     path = directory_to_raw_data + "*" + ".csv"
     all_file_names = glob.glob(path)
     all_tickers = [file_name.split('-')[0].split('/')[-1] for file_name in all_file_names]
