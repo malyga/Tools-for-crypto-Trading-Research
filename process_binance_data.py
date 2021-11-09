@@ -10,8 +10,19 @@ def Average(lst):
 
     return sum(lst) / len(lst)
 
-def generate_dates_vector(start_date, end_date, step = "60"):
-
+def generate_dates_vector(start_date, end_date, step = 60):
+    
+    """
+    The function generates a sequence of dates with a fixed step (seconds).
+    
+    Dependencies: datetime and pandas packages
+     Arguments:
+        start_date -- datetime object. Example: datetime.datetime(2018, 1, 1, 0, 00, 00) # '%Y-%m-%d %H:%M:%S'       
+        end_date -- datetime object. Example: datetime.datetime(2021, 1, 1, 0, 00, 00) # '%Y-%m-%d %H:%M:%S'    
+    Returns:
+        vectorDates -- pandas data frame with 1 column and number of rows equal to the number of periods.
+    """
+    
     step = timedelta(seconds = step)
     startDate = start_date
     endDate = end_date
