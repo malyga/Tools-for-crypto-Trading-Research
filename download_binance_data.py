@@ -61,39 +61,7 @@ def downloadAllBinance(symbol, kline_size, save=False):
     # print('All caught up..!')
     return data_df
 
-def find_symbol_filenames(directory_to_raw_data, 
-                          tickers_to_process = None, 
-                          base_ticker = "USDT"):
-    
-    path = directory_to_raw_data + "*" + ".csv"
-    all_file_names = glob.glob(path)
-    all_tickers = [file_name.split('-')[0].split('/')[-1] for file_name in all_file_names]
-
-    usdt_tickers = []
-    btc_tickers = []
-
-    for i in range(0, len(all_tickers)):
-        try:
-            if(isinstance(all_tickers[i].index("USDT"), int) == True):
-                usdt_tickers.append(all_tickers[i])
-
-        except:
-            if(isinstance(all_tickers[i].index("BTC"), int) == True):
-                btc_tickers.append(all_tickers[i])
-
-    if (tickers_to_process == None) & (base_ticker == "USDT"):
-        tickers_to_process = usdt_tickers
-        
-    elif (tickers_to_process == None) & (base_ticker == "BTC"):
-        tickers_to_process = btc_tickers
-    
-    selected_file_names =[directory_to_raw_data
-                             + ticker
-                             + '-1m-data.csv'
-                             for ticker in tickers_to_process]
-    return(tickers_to_process, selected_file_names)
-
-
+ 
 tickers, filenames  = find_symbol_filenames(directory_to_raw_data = '')
   
 tickers = ["BTCUSDT"] # symbols to download
