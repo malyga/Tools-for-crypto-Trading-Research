@@ -61,6 +61,53 @@ def downloadAllBinance(symbol, kline_size, save=False):
     # print('All caught up..!')
     return data_df
 
+def find_symbol_filenames(directory_to_raw_data, 
+                          tickers_to_process = None, 
+                          base_ticker = "USDT")
+    
+    """
+    The function is created to find necessary price data among a variety
+    of cryptopairs in `directory_to_raw_data`. It is possible to specify
+    cryptopairs via `tickers_to_process` or define `base_ticker` which is used
+    to find all cryptopairs that are traded to `base_ticker` (e.g., given
+    `base_ticker` = "USDT", the "BTCUSDT" pair will be found). 
+    The function requires that filenames that are stored in `directory_to_raw_data`
+    to follow the following name pattern: "Ticker.csv". For instance,
+    "BTCUSDT.csv".
+    
+    Arguments:
+        directory_to_raw_data -- string, path to directory where price data is stored
+        tickers_to_process -- list, the data for the tickers in the list will be searched (e.g., ["BTCUSDT", "XRPBTC"])
+        base_ticker -- string, all pairs associated with this ticker will be searched (e.g., ["BTCUSDT", "ETHUSDT"])
+        base_ticker = "USDT"
+    Returns:
+        tickers_to_process -- list of tickers that were searched (auxiliary)
+        selected_file_names -- list of filenames found
+    """
+    
+    path = directory_to_raw_data + "*" + ".csv"
+    all_file_names = glob.glob(path)
+    all_tickers = [file_name.split('-')[0].split('/')[-1] for file_name in all_file_names]
+    usdt_tickers = []
+    btc_tickers = []
+    for i in range(0, len(all_tickers)):
+        try:
+            if(isinstance(all_tickers[i].index("USDT"), int) == True):
+                usdt_tickers.append(all_tickers[i])
+        except:
+            if(isinstance(all_tickers[i].index("BTC"), int) == True):
+                btc_tickers.append(all_tickers[i])
+    if (tickers_to_process == None) & (base_ticker == "USDT"):
+        tickers_to_process = usdt_tickers
+        
+    elif (tickers_to_process == None) & (base_ticker == "BTC"):
+        tickers_to_process = btc_tickers
+    
+    selected_file_names =[directory_to_raw_data
+                             + ticker
+                             + '.csv'
+                             for ticker in tickers_to_process]
+    return(tickers_to_process, selected_file_names)
  
 tickers, filenames  = find_symbol_filenames(directory_to_raw_data = '')
   
