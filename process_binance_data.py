@@ -38,8 +38,7 @@ def generate_dates_vector(start_date, end_date, step = 60):
 
 def find_symbol_filenames(directory_to_raw_data, 
                           tickers_to_process = None, 
-                          base_ticker = "USDT",
-                          frequency_secs):
+                          base_ticker = "USDT")
     
     """
     The function is created to find necessary price data among a variety
@@ -48,12 +47,17 @@ def find_symbol_filenames(directory_to_raw_data,
     to find all cryptopairs that are traded to `base_ticker` (e.g., given
     `base_ticker` = "USDT", the "BTCUSDT" pair will be found). 
     The function requires that filenames that are stored in `directory_to_raw_data`
-    to follow the following name pattern: "Ticker-frequency_secs.csv". For instance,
-    "BTCUSDT-60.csv".
+    to follow the following name pattern: "Ticker.csv". For instance,
+    "BTCUSDT.csv".
     
-    Arguments: 
+    Arguments:
+        directory_to_raw_data -- string, path to directory where price data is stored
+        tickers_to_process -- list, the data for the tickers in the list will be searched (e.g., ["BTCUSDT", "XRPBTC"])
+        base_ticker -- string, all pairs associated with this ticker will be searched (e.g., ["BTCUSDT", "ETHUSDT"])
+        base_ticker = "USDT"
     Returns:
-    
+        tickers_to_process -- list of tickers that were searched (auxiliary)
+        selected_file_names -- list of filenames found
     """
     
     path = directory_to_raw_data + "*" + ".csv"
@@ -80,7 +84,7 @@ def find_symbol_filenames(directory_to_raw_data,
     
     selected_file_names =[directory_to_raw_data
                              + ticker
-                             + '-1m-data.csv'
+                             + '.csv'
                              for ticker in tickers_to_process]
     return(tickers_to_process, selected_file_names)
 
@@ -145,8 +149,7 @@ def create_OCHLVT_tables(start_date, end_date,
         fileNameToWrite = star_date_name + '_' \
                           + end_date_name + '-' \
                           + ochlvFlag + '-' \
-                          + coinFlag \
-                          + '-1m-data' + '.csv'
+                          + coinFlag + '.csv'
 
         finalTableDataFrame.to_csv(export_directory + fileNameToWrite, index=False)
         endTimer = time.time()
