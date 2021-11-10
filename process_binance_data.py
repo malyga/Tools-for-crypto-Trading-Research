@@ -38,15 +38,18 @@ def generate_dates_vector(start_date, end_date, step = 60):
 
 def find_symbol_filenames(directory_to_raw_data, 
                           tickers_to_process = None, 
-                          base_ticker = "USDT"):
+                          base_ticker = "USDT",
+                          frequency_secs):
     
     """
-    The function returns filenames that are stored within directory_to_raw_data 
-    and all tickers crypto pairs) related to the base_ticker. For example, if base_ticker = "USDT" 
-    and within directory_to_raw_data there is the only price (.csv) file associated to base_ticker, then
-    the returned data will be ("BTCUSDT-1d-data.csv", "BTCUSDT").
-    
-    The file names within directory_to_raw_data should be name, for instance, as "BTCUSDT-1m-data.csv"
+    The function is created to find necessary price data among a variety
+    of cryptopairs in `directory_to_raw_data`. It is possible to specify
+    cryptopairs via `tickers_to_process` or define `base_ticker` which is used
+    to find all cryptopairs that are traded to `base_ticker` (e.g., given
+    `base_ticker` = "USDT", the "BTCUSDT" pair will be found). 
+    The function requires that filenames that are stored in `directory_to_raw_data`
+    to follow the following name pattern: "Ticker-frequency_secs.csv". For instance,
+    "BTCUSDT-60.csv".
     
     Arguments: 
     Returns:
