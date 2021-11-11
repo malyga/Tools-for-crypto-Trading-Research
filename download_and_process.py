@@ -170,6 +170,76 @@ for symbol in tickers:
     except:
         tickers_missed.append(symbol)
         print(symbol + " " + "was not downloaded.")
+        
+def create_OCHLVT_tables(start_date, end_date, 
+                         step, directory_to_raw_data, 
+                         export_directory, 
+                         tickers_to_process = None, 
+                         base_ticker = "USDT"):
+    directory_to_raw_data = directory_to_raw_data
+    columnIndexes = [1, 2, 3, 4, 5, 8]
+    columnNames = ['open', 'high', 'low', 'close', 'volume', 'trades']
+    vectorDates = generate_dates_vector(start_date = start_date,
+                                        end_date = end_date, step = step)
+                                        
+    tickers, relevant_file_names  = find_symbol_filenames(directory_to_raw_data, 
+                                                          tickers_to_process, 
+                                                          base_ticker)
+    fileNames = relevant_file_names
+    iterations = len(columnIndexes)
+    timeElapsed = []
+    coinFlag = base_ticker
+    indexForColumnNames = 0
+    for columnIndex in columnIndexes:
+        startTimer = time.time()
+        finalTable = None
+        finalTable = np.empty(shape=(len(vectorDates), len(fileNames)),
+                              dtype='float')
+        i = 0
+        for fileName in fileNames:
+            dataFrame = pd.read_csv(fileName, usecols=[0, columnIndex])
+            ochlvFlag = dataFrame.columns[1]
+            targetColumn = np.asanyarray(dataFrame.iloc[:, 1], dtype='float')
+            timeStampsVector = np.asanyarray(dataFrame['timestamp'],
+                                             dtype='datetime64')
+            foundTimeStamps, indexIntersectBasis, indexIntersectLocal = \
+                np.intersect1d(vectorDates, timeStampsVector, return_indices=True)
+            finalTable[indexIntersectBasis, i] = targetColumn[indexIntersectLocal]
+            i += 1
+        finalTable[finalTable == 0] = np.nan
+        finalTableDataFrame = pd.DataFrame(finalTable)
+        finalTableDataFrame = pd.concat([vectorDates,
+                                         finalTableDataFrame], axis=1)
+        finalTableDataFrame.columns = ['Date'] + tickers
+        star_date_name = str(start_date.year) + "-" \
+                         + str(start_date.month) + "-" \
+                         + str(start_date.day)
+        end_date_name = str(end_date.year) + "-" \
+                        + str(end_date.month) + "-" \
+                        + str(end_date.day)
+        fileNameToWrite = star_date_name + '_' \
+                          + end_date_name + '-' \
+                          + ochlvFlag + '-' \
+                          + coinFlag + '.csv'
+        
+        finalTableDataFrame.to_csv(export_directory + fileNameToWrite, index=False)
+        endTimer = time.time()
+        timeElapsedPoint = endTimer - startTimer
+        iterations += -1
+        timeElapsed.append(timeElapsedPoint)
+        expetedTimeLeftMinutes = round(Average(timeElapsed) * iterations / 60, 2)
+        finalTableDataFrame = None
+        indexForColumnNames += 1
+
+        print(ochlvFlag + " data" + " has been generated. " + str(iterations)
+              + " files to generate left. " + "Expected time to complete: "
+              + str(expetedTimeLeftMinutes) + " minutes.")
+
+        print('The name of the generated file is ' + fileNameToWrite + '.')
+        print()
+
+    return()
+
 
 start_date_input = datetime.datetime(2018, 1, 1, 0, 00, 00) # '%Y-%m-%d %H:%M:%S'
 end_date_input = datetime.datetime(2021, 2, 15, 12, 00, 00) # '%Y-%m-%d %H:%M:%S'
@@ -177,7 +247,6 @@ directory_to_raw_data = ''
 directory_export = ''
 path = directory_to_raw_data + "*" + ".csv"
 all_file_names = glob.glob(path)
-
 
 create_OCHLVT_tables(start_date = start_date_input, 
                      end_date = end_date_input, 
