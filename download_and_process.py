@@ -4,15 +4,13 @@ import os.path
 import glob
 import time
 from binance.client import Client
-import datetime import
-from detatime import timedelta
+import datetime
+from datetime import timedelta
 from dateutil import parser
 import tqdm
 import numpy as np
 
-path = os.getcwd()
-os.chdir('/Users/username/Desktop') # set a directory where you would like to store the data
-
+pos.chdir('') # set a directory where you would like to store the data
 binance_api_key = '[]' # set your api key
 binance_api_secret = '[]' # set your api secret key
 binsizes = {"1m": 1, "5m": 5, "1h": 60, "1d": 1440}
@@ -24,7 +22,7 @@ def minutes_of_new_data(symbol, kline_size, data, source):
     if len(data) > 0:
         old = parser.parse(data["timestamp"].iloc[-1])
     elif source == "binance":
-        old = datetime.strptime('1 Jan 2017', '%d %b %Y')
+        old = datetime.datetime.strptime('1 Jan 2017', '%d %b %Y')
     if source == "binance":
         new = pd.to_datetime(binance_client.get_klines(symbol=symbol,
                                                        interval=kline_size)[-1][0], unit='ms')
@@ -65,7 +63,8 @@ def downloadAllBinance(symbol, kline_size, save=False):
 
 def find_symbol_filenames(directory_to_raw_data, 
                           tickers_to_process = None, 
-                          base_ticker = "USDT"):
+                          base_ticker = "USDT",
+                          frequency = "1d"):
     
     """
     The function is created to find necessary price data among a variety
@@ -74,15 +73,14 @@ def find_symbol_filenames(directory_to_raw_data,
     to find all cryptopairs that are traded to `base_ticker` (e.g., given
     `base_ticker` = "USDT", the "BTCUSDT" pair will be found). 
     The function requires that filenames that are stored in `directory_to_raw_data`
-    to follow the following name pattern: "Ticker.csv". For instance,
-    "BTCUSDT.csv".
+    to follow the following name pattern: "Ticker-frequency-data.csv". For instance,
+    "BTCUSDT-1d-data.csv".
     
     Arguments:
         directory_to_raw_data -- string, path to directory where price data is stored
         tickers_to_process -- list, the data for the tickers in the list will be searched (e.g., ["BTCUSDT", "XRPBTC"])
         base_ticker -- string, all pairs associated with this ticker will be searched (e.g., ["BTCUSDT", "ETHUSDT"])
-        base_ticker = "USDT"
-    Returns:
+        frequency -- string, the data frequency of a file to search for (e.g., "1m", "1d", etc.)
         tickers_to_process -- list of tickers that were searched (auxiliary)
         selected_file_names -- list of filenames found
     """
@@ -106,46 +104,16 @@ def find_symbol_filenames(directory_to_raw_data,
         tickers_to_process = btc_tickers
     
     selected_file_names =[directory_to_raw_data
-                             + ticker
+                             + ticker + "-"
+                             + frequency + 
+                             "-data"
                              + '.csv'
                              for ticker in tickers_to_process]
     return(tickers_to_process, selected_file_names)
  
-
-        
-def Average(lst):
-
-    return sum(lst) / len(lst)
-
-def generate_dates_vector(start_date, end_date, step = 60):
-    
-    """
-    The function generates a sequence of dates with a fixed step (seconds).
-    
-    Dependencies: datetime and pandas packages
-     Arguments:
-        start_date -- datetime object. Example: datetime.datetime(2018, 1, 1, 0, 00, 00) # '%Y-%m-%d %H:%M:%S'       
-        end_date -- datetime object. Example: datetime.datetime(2021, 1, 1, 0, 00, 00) # '%Y-%m-%d %H:%M:%S'    
-    Returns:
-        vectorDates -- pandas data frame with 1 column and number of rows equal to the number of periods.
-    """
-    
-    step = timedelta(seconds = step)
-    startDate = start_date
-    endDate = end_date
-
-    vectorDates = []
-
-    while startDate < endDate:
-        vectorDates.append(startDate.strftime('%Y-%m-%d %H:%M:%S'))
-        startDate += step
-    vectorDates = pd.DataFrame(np.asanyarray(vectorDates, dtype='datetime64'))
-    vectorDates.rename(columns = {0: "Date"}, inplace = True)
-    return(vectorDates)
- 
-tickers, filenames  = find_symbol_filenames(directory_to_raw_data = '')
+# tickers, filenames  = find_symbol_filenames(directory_to_raw_data = '')
   
-tickers = ["BTCUSDT"] # symbols to download
+tickers = []
 timeElapsed = [] # stores time elampsed for each item
 tickers_missed = [] # stores the tickers that were not dowloaded for troubleshoting
 numOfTickers = len(tickers) # total number of tickers to download
@@ -171,11 +139,42 @@ for symbol in tickers:
         tickers_missed.append(symbol)
         print(symbol + " " + "was not downloaded.")
         
+def Average(lst):
+
+    return sum(lst) / len(lst)
+
+def generate_dates_vector(start_date, end_date, step = 60*60*24):
+    
+    """
+    The function generates a sequence of dates with a fixed step (seconds).
+    
+    Dependencies: datetime and pandas packages
+     Arguments:
+        start_date -- datetime object. Example: datetime.datetime(2018, 1, 1, 0, 00, 00) # '%Y-%m-%d %H:%M:%S'       
+        end_date -- datetime object. Example: datetime.datetime(2021, 1, 1, 0, 00, 00) # '%Y-%m-%d %H:%M:%S'    
+    Returns:
+        vectorDates -- pandas data frame with 1 column and number of rows equal to the number of periods.
+    """
+    
+    step = timedelta(seconds = step)
+    startDate = start_date
+    endDate = end_date
+
+    vectorDates = []
+
+    while startDate < endDate:
+        vectorDates.append(startDate.strftime('%Y-%m-%d %H:%M:%S'))
+        startDate += step
+    vectorDates = pd.DataFrame(np.asanyarray(vectorDates, dtype='datetime64'))
+    vectorDates.rename(columns = {0: "Date"}, inplace = True)
+    return(vectorDates)
+        
 def create_OCHLVT_tables(start_date, end_date, 
                          step, directory_to_raw_data, 
                          export_directory, 
                          tickers_to_process = None, 
-                         base_ticker = "USDT"):
+                         base_ticker = "USDT",
+                         frequency = "1m"):
     directory_to_raw_data = directory_to_raw_data
     columnIndexes = [1, 2, 3, 4, 5, 8]
     columnNames = ['open', 'high', 'low', 'close', 'volume', 'trades']
@@ -184,7 +183,8 @@ def create_OCHLVT_tables(start_date, end_date,
                                         
     tickers, relevant_file_names  = find_symbol_filenames(directory_to_raw_data, 
                                                           tickers_to_process, 
-                                                          base_ticker)
+                                                          base_ticker,
+                                                          frequency = "1m")
     fileNames = relevant_file_names
     iterations = len(columnIndexes)
     timeElapsed = []
@@ -196,16 +196,24 @@ def create_OCHLVT_tables(start_date, end_date,
         finalTable = np.empty(shape=(len(vectorDates), len(fileNames)),
                               dtype='float')
         i = 0
+        
         for fileName in fileNames:
-            dataFrame = pd.read_csv(fileName, usecols=[0, columnIndex])
-            ochlvFlag = dataFrame.columns[1]
-            targetColumn = np.asanyarray(dataFrame.iloc[:, 1], dtype='float')
-            timeStampsVector = np.asanyarray(dataFrame['timestamp'],
-                                             dtype='datetime64')
-            foundTimeStamps, indexIntersectBasis, indexIntersectLocal = \
-                np.intersect1d(vectorDates, timeStampsVector, return_indices=True)
-            finalTable[indexIntersectBasis, i] = targetColumn[indexIntersectLocal]
-            i += 1
+            
+            try:
+
+                dataFrame = pd.read_csv(fileName, usecols=[0, columnIndex])
+                ochlvFlag = dataFrame.columns[1]
+                targetColumn = np.asanyarray(dataFrame.iloc[:, 1], dtype='float')
+                timeStampsVector = np.asanyarray(dataFrame['timestamp'],
+                                                 dtype='datetime64')
+                foundTimeStamps, indexIntersectBasis, indexIntersectLocal = \
+                    np.intersect1d(vectorDates, timeStampsVector, return_indices=True)
+                finalTable[indexIntersectBasis, i] = targetColumn[indexIntersectLocal]
+                i += 1
+            except:
+                print(fileName)
+            
+            
         finalTable[finalTable == 0] = np.nan
         finalTableDataFrame = pd.DataFrame(finalTable)
         finalTableDataFrame = pd.concat([vectorDates,
@@ -240,6 +248,10 @@ def create_OCHLVT_tables(start_date, end_date,
 
     return()
 
+find_symbol_filenames(directory_to_raw_data, 
+                      tickers_to_process = None, 
+                      base_ticker = "USDT",
+                      frequency = "1m")
 
 start_date_input = datetime.datetime(2018, 1, 1, 0, 00, 00) # '%Y-%m-%d %H:%M:%S'
 end_date_input = datetime.datetime(2021, 2, 15, 12, 00, 00) # '%Y-%m-%d %H:%M:%S'
@@ -248,10 +260,11 @@ directory_export = ''
 path = directory_to_raw_data + "*" + ".csv"
 all_file_names = glob.glob(path)
 
+
 create_OCHLVT_tables(start_date = start_date_input, 
                      end_date = end_date_input, 
                      step = 60,
                      directory_to_raw_data = directory_to_raw_data,
                      export_directory = directory_export,
                      tickers_to_process = None,
-                     base_ticker = "USDT")
+                     frequency = "1m")
