@@ -1,0 +1,90 @@
+import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+
+def top_n_accuracy(df, N_values):
+    # Step 1: Extract year from Periodenddate
+    df['Year'] = pd.to_datetime(df['Periodenddate']).dt.year
+    
+    # Step 2: Sort data by sec_id and Year for consistency
+    df = df.sort_values(by=['sec_id', 'Year'])
+    
+    # Step 3: Initialize result storage
+    results = []
+    
+    # Step 4: Iterate over years to compute cosine similarity between embeddings in consecutive years
+    unique_years = sorted(df['Year'].unique())
+    
+    for i in range(len(unique_years) - 1):
+        year_t = unique_years[i]
+        year_t1 = unique_years[i+1]
+        
+        df_t = df[df['Year'] == year_t]
+        df_t1 = df[df['Year'] == year_t1]
+        
+        # Step 5: Filter sec_ids that are present in both t and t+1
+        common_sec_ids = set(df_t['sec_id']).intersection(set(df_t1['sec_id']))
+        df_t = df_t[df_t['sec_id'].isin(common_sec_ids)]
+        df_t1 = df_t1[df_t1['sec_id'].isin(common_sec_ids)]
+        
+        # Precompute embeddings as numpy arrays
+        embeddings_t = np.vstack(df_t['embedding'].values)
+        embeddings_t1 = np.vstack(df_t1['embedding'].values)
+        
+        # Precompute sec_id index lookup in df_t1 for efficiency
+        sec_id_to_index_t1 = {sec_id: idx for idx, sec_id in enumerate(df_t1['sec_id'])}
+        
+        # Step 6: Compute cosine similarity between all embeddings in t and t+1
+        similarity_matrix = cosine_similarity(embeddings_t, embeddings_t1)
+        
+        # Step 7: For each sec_id in t, find the top-N matches in t+1
+        top_n_matches = np.argsort(similarity_matrix, axis=1)[:, ::-1]  # Get indices sorted in descending order
+        
+        # Step 8: Initialize dictionaries to store results for different Top-N values
+        accuracy_top_n = {N: 0 for N in N_values}
+        category_accuracy_top_n = {N: {1: {'correct': 0, 'total': 0}, 12: {'correct': 0, 'total': 0}} for N in N_values}
+        
+        total = len(df_t)  # Total number of sec_ids being compared
+        
+        # Step 9: Loop through each sec_id in year t and check Top-N matches
+        for idx, row in df_t.iterrows():
+            sec_id_t = row['sec_id']
+            category_id_t = row['Categoryid']
+            
+            # Get the true index of the matching sec_id in df_t1
+            true_idx = sec_id_to_index_t1[sec_id_t]
+            
+            # Check for each N in N_values if the true index is within the top N matches
+            for N in N_values:
+                if true_idx in top_n_matches[idx, :N]:
+                    accuracy_top_n[N] += 1
+                    category_accuracy_top_n[N][category_id_t]['correct'] += 1
+                
+                # Always increment the total counts for categories
+                category_accuracy_top_n[N][category_id_t]['total'] += 1
+        
+        # Step 10: Compute and store results for each Top-N and category
+        result_row = {'Year Range': f'{year_t} to {year_t1}'}
+        
+        for N in N_values:
+            result_row[(f'Accuracy Top {N}', 'Overall')] = accuracy_top_n[N] / total if total > 0 else 0
+            for category in [1, 12]:
+                category_total = category_accuracy_top_n[N][category]['total']
+                category_correct = category_accuracy_top_n[N][category]['correct']
+                result_row[(f'Accuracy Top {N}', f'Category {category}')] = category_correct / category_total if category_total > 0 else 0
+        
+        results.append(result_row)
+    
+    # Step 11: Convert results into a DataFrame with MultiIndex columns
+    results_df = pd.DataFrame(results)
+    results_df.columns = pd.MultiIndex.from_tuples(results_df.columns)
+    
+    return results_df
+
+# Example usage:
+df = pd.read_parquet("your_parquet_file.parquet")
+N_values = [1, 2, 3]  # For top-1, top-2, and top-3 accuracy
+results_df = top_n_accuracy(df, N_values)
+
+# Display the results DataFrame
+print(results_df)
